@@ -36,8 +36,10 @@ def start_message(message):
 def lalala(message):
     text_hashtag = message.text
     dict_info = GetInfo(domain)
-    # for i in range(0, 10):
-    #     if text_hashtag in dict_info[i][""]
+    bot.send_message(message.chat.id, send_post_Htag(message.text, dict_info))
+
+
+
 
 
 
@@ -51,7 +53,7 @@ def GetInfo(domain):
 
     data2 = data["items"]
     list_post_text = {}
-    # print(data2)
+
     for i in range(0, len(data2)): # вытаскиваем из data2 тексты постов
         text_post = data2[i]["text"]
         text_data = data2[i]["date"]
@@ -64,11 +66,15 @@ def GetInfo(domain):
 
     return list_post_text
 
+def send_post_Htag(text_hashtag, dict_info):
+    for i in range(0, 10):
+        if text_hashtag in dict_info[i][1]:
+            stroka_for_send = dict_info[i][1] + "\n" + dict_info[i][2]
+            break
+    return stroka_for_send
 
 
-
-    # print(data2[2]["text"])
 
 dict = GetInfo(domain)
 
-# bot.polling(none_stop=True)
+bot.polling(none_stop=True)
