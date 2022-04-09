@@ -28,6 +28,17 @@ def start_message(message):
                    f'Салам {message.from_user.first_name}!, Я бот🤖, Меня зовут YaNotifi! Я буду уведомлять тебя о новых постах в сообществе вконтакте под названием Научим Online❕⬇️'.format(
                      message.from_user, bot.get_me()),
                    parse_mode='html', reply_markup=markup)
+  bot.send_message(message.chat.id,
+                   'Отправь мне хэштэг # и я вышлю тебе последние публикации с ним'.format())
+
+
+@bot.message_handler(content_types=['text'])
+def lalala(message):
+    text_hashtag = message.text
+    dict_info = GetInfo(domain)
+    # for i in range(0, 10):
+    #     if text_hashtag in dict_info[i][""]
+
 
 
 
@@ -41,7 +52,6 @@ def GetInfo(domain):
     data2 = data["items"]
     list_post_text = {}
     # print(data2)
-    print(data2[1]['attachments'][0]["video"]["photo_320"])
     for i in range(0, len(data2)): # вытаскиваем из data2 тексты постов
         text_post = data2[i]["text"]
         text_data = data2[i]["date"]
@@ -49,7 +59,7 @@ def GetInfo(domain):
         if "attachments" in data2[i]:
             if data2[i]["attachments"][0]["type"] == "photo":
                 img_post = data2[i]['attachments'][0]["photo"]["sizes"][4]["url"]
-        list_post_text[text_data] = [text_post, img_post]
+        list_post_text[i] = [text_data, text_post, img_post]
 
 
     return list_post_text
@@ -59,5 +69,6 @@ def GetInfo(domain):
 
     # print(data2[2]["text"])
 
-print(GetInfo(domain))
+dict = GetInfo(domain)
+
 # bot.polling(none_stop=True)
