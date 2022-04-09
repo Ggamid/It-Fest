@@ -25,7 +25,7 @@ def start_message(message):
   send_mess = f"Hello {message.from_user.first_name}"
 
   bot.send_message(message.chat.id,
-                   f'Салам {message.from_user.first_name}!, Я бот🤖, новостной бот, на данный момент я умею отправлять новости📰, выбери из предложенных тем, интересную тебе❕⬇️'.format(
+                   f'Салам {message.from_user.first_name}!, Я бот🤖, Меня зовут YaNotifi! Я буду уведомлять тебя о новых постах в сообществе вконтакте под названием Научим Online❕⬇️'.format(
                      message.from_user, bot.get_me()),
                    parse_mode='html', reply_markup=markup)
 
@@ -41,12 +41,15 @@ def GetInfo(domain):
     data2 = data["items"]
     list_post_text = {}
     # print(data2)
-
+    print(data2[1]['attachments'][0]["video"]["photo_320"])
     for i in range(0, len(data2)): # вытаскиваем из data2 тексты постов
         text_post = data2[i]["text"]
         text_data = data2[i]["date"]
-        list_post_text[text_data] = text_post
-
+        img_post = None
+        if "attachments" in data2[i]:
+            if data2[i]["attachments"][0]["type"] == "photo":
+                img_post = data2[i]['attachments'][0]["photo"]["sizes"][4]["url"]
+        list_post_text[text_data] = [text_post, img_post]
 
 
     return list_post_text
@@ -56,5 +59,5 @@ def GetInfo(domain):
 
     # print(data2[2]["text"])
 
-
+print(GetInfo(domain))
 # bot.polling(none_stop=True)
