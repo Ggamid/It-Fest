@@ -1,4 +1,3 @@
-
 import telebot
 import requests
 import vk_api
@@ -13,48 +12,50 @@ vk = session.get_api()
 
 bot = telebot.TeleBot(token)
 
+
+# Bot begin
 @bot.message_handler(commands=['start'])
 def start_message(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
-  markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    support = types.KeyboardButton("Поддержка⚙️") #добавление клавиатуры
 
-  support = types.KeyboardButton("Поддержка⚙️")
+    markup.add(support)
+    send_mess = f"Hello {message.from_user.first_name}"
+    sti = open("AnimatedSticker.tgs", "rb")
+
+    bot.send_sticker(message.chat.id, sti) # отправка стикера
+    bot.send_message(message.chat.id,
+                     f'Салам {message.from_user.first_name}!, Я бот🤖, Меня зовут YaNotifi! Я буду уведомлять тебя о новых постах в сообществе вконтакте под названием Научим Online❕'.format(
+                         message.from_user, bot.get_me()),
+                     parse_mode='html', reply_markup=markup)
+    bot.send_message(message.chat.id,
+                     'Отправь мне хэштэг # и я вышлю тебе последние публикации с ним'.format())
 
 
-  markup.add(support)
-  send_mess = f"Hello {message.from_user.first_name}"
 
-  bot.send_message(message.chat.id,
-                   f'Салам {message.from_user.first_name}!, Я бот🤖, Меня зовут YaNotifi! Я буду уведомлять тебя о новых постах в сообществе вконтакте под названием Научим Online❕⬇️'.format(
-                     message.from_user, bot.get_me()),
-                   parse_mode='html', reply_markup=markup)
-  bot.send_message(message.chat.id,
-                   'Отправь мне хэштэг # и я вышлю тебе последние публикации с ним'.format())
-
-
-@bot.message_handler(content_types=['text'])
+@bot.message_handler(content_types=['text', "sticker"])
 def lalala(message):
-    text_hashtag = message.text
-    dict_info = GetInfo(domain)
-    bot.send_message(message.chat.id, send_post_Htag(message.text, dict_info))
+    text_hashtag = message.text #получени текста сообщения
+    dict_info = GetInfo(domain) #словарь с публикациями
+    bot.send_message(message.chat.id, send_post_Htag(text_hashtag, dict_info))
 
 
-
-
-
+# Bot_end
 
 
 def pars(domain):
-    status = session.method("wall.get", {"domain":domain, "count":10})
+    status = session.method("wall.get", {"domain": domain, "count": 10})  #запрос в vk api
     return status
 
+
 def GetInfo(domain):
-    data = pars(domain)
+    data = pars(domain)  # Неструктурированные данные
 
     data2 = data["items"]
     list_post_text = {}
 
-    for i in range(0, len(data2)): # вытаскиваем из data2 тексты постов
+    for i in range(0, len(data2)):  # вытаскиваем из data2 тексты постов
         text_post = data2[i]["text"]
         text_data = data2[i]["date"]
         img_post = None
@@ -66,15 +67,16 @@ def GetInfo(domain):
 
     return list_post_text
 
-def send_post_Htag(text_hashtag, dict_info):
+
+def send_post_Htag(text_hashtag, dict_info): # функция проходится по словарю и ищет публикации с нужными хэштэгами
     for i in range(0, 10):
         if text_hashtag in dict_info[i][1]:
             stroka_for_send = dict_info[i][1] + "\n" + dict_info[i][2]
             break
+    else:
+        stroka_for_send = "такого тэга нет"
     return stroka_for_send
 
 
-
-dict = GetInfo(domain)
 
 bot.polling(none_stop=True)
