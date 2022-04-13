@@ -1,7 +1,7 @@
 import sqlite3
 
 
-connect = sqlite3.connect('db_id_tag.db')
+connect = sqlite3.connect('db_id_tag.db')   # подключаемся к БД
 cursor = connect.cursor()
 
 
@@ -21,69 +21,117 @@ class Sqlighter:
 
     def add_id(id):
         try:
-            cursor.execute("SELECT id FROM user WHERE id = ?", [id])
-            if cursor.fetchone() is None:
 
-                cursor.execute("INSERT INTO user(id) VALUES(?);", [id])
-                connect.commit()
+            connect = sqlite3.connect('db_id_tag.db')  # подключаемся к БД
+            cursor = connect.cursor()   # подключаем способность редактирования
 
-            else:
-                print("Такой id уже существует")
+            cursor.execute("SELECT id FROM user WHERE id = ?", [id]) # получаем значение
+            if cursor.fetchone() is None: # проверяем есть ли у нас такой id или нет
+
+                cursor.execute("INSERT INTO user(id) VALUES(?);", [id]) # если нет, то добавляем
+                connect.commit() # подтверждаем изменения
+                return "ПОЛЬЗОВАТЕЛЬ УСПЕШНО ДОБАВЛЕН"
+            else: # если есть отправлем сообщение
+                return "ТАКОЙ ПОЛЬЗОВАТЕЛЬ УЖЕ СУЩЕСТВУЕТ"
+
 
         except sqlite3.Error as e:
             print("Error", e)
         finally:
-            cursor.close()
-            connect.close()
+            cursor.close() # после обработки метода отключаем способность редактирования
+            connect.close() # отключаемся от БД
 
 
-    def add_tag_to_id(tag, id):
+    def add_tag_to_id(id, tag):
         try:
 
-            connect = sqlite3.connect('db_id_tag.db')
-            cursor = connect.cursor()
+            connect = sqlite3.connect('db_id_tag.db')  # подключаемся к БД
+            cursor = connect.cursor()   # подключаем способность редактирования
 
             cursor.execute("SELECT id FROM user WHERE id = ?", [id])
-            if cursor.fetchone() is None:
-                print("Нет такого id")
-            else:
-                new_tag = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0]
-                if new_tag is None:
-                    new_tag = tag
-                else:
-                    new_tag = new_tag + "," + tag
+            if cursor.fetchone() is None: # проверяем есть ли у нас такой id или нет
+                return "ID НЕ НАЙДЕНО"
+            else: #  если есть то добавляем хэштэги
+                new_tag = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0] # берем существующие тэги
                 print(new_tag)
-                cursor.execute("UPDATE user SET tag = ? WHERE id = ?", [new_tag, id])
-                cursor.execute("UPDATE user SET status = ? WHERE id = ?", [1, id])
-                connect.commit()
+                if new_tag is None or new_tag == "":# если тэгов нет то просто ставим переданный тэг
+                    new_tag = tag
+                elif tag not in new_tag: # если тэги есть то к существующим добавляем новый
+                    new_tag = new_tag + "," + tag
+
+                cursor.execute("UPDATE user SET tag = ? WHERE id = ?", [new_tag, id]) # добавляем в столбец tag значение переменной new_tag
+                cursor.execute("UPDATE user SET status = ? WHERE id = ?", [1, id]) # подключаем человека к рассылке
+                connect.commit() # подтверждаем изменения
+                return "TAG ДОБАВЛЕН"
 
         except sqlite3.Error as e:
             print("Error", e)
         finally:
-            cursor.close()
-            connect.close()
+            cursor.close()# после обработки метода отключаем способность редактирования
+            connect.close() # отключаемся от БД
 
-    def turn_off_sendind(id):
+    def turn_off_sendind(id): # отключени отправки сообщений
         try:
-            connect = sqlite3.connect("db_id_tag.db")
-            cursor = connect.cursor()
+            connect = sqlite3.connect("db_id_tag.db")  # подключаемся к БД
+            cursor = connect.cursor() # подключаем способность редактирования
 
             cursor.execute("SELECT id FROM user WHERE id = ?", [id])
             if cursor.fetchone() is None:
-                print("Нет такого id")
+                return "ТАКОГО ID НЕТ"
             else:
                 cursor.execute("UPDATE user SET status = ? WHERE id = ?", [0, id])
-                connect.commit()
+                connect.commit() # подтверждаем изменения
+                return "ОТПРАВКА ОСТАНОВЛЕНА"
+
         except sqlite3.Error as e:
             print("Error", e)
         finally:
-            cursor.close()
-            connect.close()
+            cursor.close()# после обработки метода отключаем способность редактирования
+            connect.close() # отключаемся от БД
 
 
 
     def remove_tag_from_id(id, tag):
+        try:
 
-        pass
-Sqlighter.turn_off_sendind(1)
-# Sqlighter.add_tag_to_id(123123, "#HashTag")
+            connect = sqlite3.connect("db_id_tag.db")  # подключаемся к БД
+            cursor = connect.cursor()   # подключаем способность редактирования
+
+            a = cursor.execute("SELECT tag FROM user WHERE id = ?", [id])  #Проверка есть ли в базе данное ID
+            b = cursor.execute("SELECT id FROM user WHERE id = ?", [id])
+            if a.fetchone() is None or b is None:
+                return "ID НЕТ В БАЗЕ ИЛИ В TAG НИЧЕГО НЕТ"
+            else:
+                print("good")
+                old_tag = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0].split(",")  #вытаскиваем строку с тэгами и превращаем ее в список с тэгами
+                old_tag.remove(tag)  #удаляем ненужный тэг
+                new_tag = ",".join(old_tag)  #cоздаем новую строку которую будем добавлять в бд
+                cursor.execute("UPDATE user SET tag = ? WHERE id = ?", [new_tag, id])  #дабавляем отредактированные тэги
+                connect.commit() # подтверждаем изменения
+                return 'СПИСОК ХЭШТЭГОВ ИЗМЕНЕН'
+
+            # new_tag = ",".join(old_tag)
+
+        except sqlite3.Error as e:
+            print("Error", e)
+        finally:
+            cursor.close()# после обработки метода отключаем способность редактирования
+            connect.close() # отключаемся от БД
+
+    def check_out_status(id): # проверка на то, нужно ли отправлять пользователю уведомления или нет
+
+        connect = sqlite3.connect("db_id_tag.db")  # подключаемся к БД
+        cursor = connect.cursor()  # подключаем способность редактирования
+
+        tag = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0]
+        status = cursor.execute("SELECT status FROM user WHERE id = ?", [id]).fetchone()[0]
+        print(tag, status)
+        if tag is None or tag == "" or status == 0: #если в тэге ничего нет или тэг это пустая строчка или статус равен 0 то пользоваетель не подходит под рассылку, иначе - подходит
+            return False
+        else:
+            return True
+
+
+
+
+
