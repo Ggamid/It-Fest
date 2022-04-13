@@ -70,7 +70,7 @@ class Sqlighter:
             cursor.close()# после обработки метода отключаем способность редактирования
             connect.close() # отключаемся от БД
 
-    def turn_off_sendind(id): # отключени отправки сообщений
+    def change_sendind(id, status): # отключени отправки сообщений
         try:
             connect = sqlite3.connect("db_id_tag.db")  # подключаемся к БД
             cursor = connect.cursor() # подключаем способность редактирования
@@ -79,16 +79,15 @@ class Sqlighter:
             if cursor.fetchone() is None:
                 return "ТАКОГО ID НЕТ"
             else:
-                cursor.execute("UPDATE user SET status = ? WHERE id = ?", [0, id])
+                cursor.execute("UPDATE user SET status = ? WHERE id = ?", [status, id])
                 connect.commit() # подтверждаем изменения
-                return "ОТПРАВКА ОСТАНОВЛЕНА"
+                return "ИЗМЕНЕНИЯ СОХРАНЕНЫ"
 
         except sqlite3.Error as e:
             print("Error", e)
         finally:
             cursor.close()# после обработки метода отключаем способность редактирования
             connect.close() # отключаемся от БД
-
 
 
     def remove_tag_from_id(id, tag):
