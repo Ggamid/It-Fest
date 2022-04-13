@@ -2,8 +2,10 @@ import telebot
 import requests
 import vk_api
 from telebot import types
+import time
 from requests import get
 from Sqlighter import Sqlighter
+from threading import Thread
 
 
 token = "5248705269:AAF0vUzDRuf3nYV-M6Ur9OFnlQNyx_izGKY"
@@ -37,10 +39,12 @@ def start_message(message):
 
     elif message.text == "/add_tag":
 
-
+        empti = []
+        empti = set(find_teg(GetText(domain), empti))
         bot.send_message(message.chat.id, f"Ваш нынешний список: \n{Sqlighter.get_tag(message.from_user.id)}")
-        bot.send_message(message.chat.id, "Отправь хэштэг на который хотите подписаться в формате 📥:".format())
-        bot.send_message(message.chat.id, "YaNotifi, Добавь хэштэг: #text".format())
+        bot.send_message(message.chat.id, "Хэштэги из последних 40ка публикаций: \n{}".format(empti))
+        bot.send_message(message.chat.id, "Отправь хэштэг на который хотите подписаться в формате 📥:")
+        bot.send_message(message.chat.id, "YaNotifi, Добавь хэштэг: #text")
 
 
     elif message.text == "/remove_tag":
@@ -69,12 +73,45 @@ def lalala(message):
         else:
             bot.send_message(message.chat.id, "Используй мои команды: \n         /add_tag - добавить хэштэг \n         /change_sending - отключение\включение рассылки \n         /remove_tag - отписаться от определенного хэштэга")
 
+# @bot.callback_query_handler(func=lambda call: True)
+# def callback_inline(call):
+#
+#     try:
+#         id = message.from_user.id
+#
+#         if call.message:
+#             # news
+#
+#             if call.data == 'Continue Sending':
+#                 Sqlighter.change_sendind(id, 1)
+#             elif call.data == 'Stop Sending':
+#                 Sqlighter.change_sendind(id, 0)
+#     except Exception as e:
+#         print(repr(e))
+#
 
+
+def sender():
+    list_user = Sqlighter.get_id_list()
+    list_post = GetInfo(domain)
+
+    while True:
+        for i in list_user:
+            list_tag = Sqlighter.get_tag(i)
+            for tag in list_tag:
+                if send_post_Htag(tag, list_post) != "такого тэга нет":
+                    bot.send_message(i, send_post_Htag(tag, list_post))
+        time.sleep(100000)
+
+
+
+t1 = Thread(target = sender)
+t1.start()
 # Bot_end
 
 
 def pars(domain):
-    status = session.method("wall.get", {"domain": domain, "count": 10})  #запрос в vk api
+    status = session.method("wall.get", {"domain": domain, "count": 50})  #запрос в vk api
     return status
 
 
@@ -96,9 +133,22 @@ def GetInfo(domain):
 
     return list_post_text
 
+def GetText(domain):
+    data = pars(domain)  # Неструктурированные данные
+
+    data2 = data["items"]
+    list_post_text = []
+
+    for i in range(0, len(data2)):  # вытаскиваем из data2 тексты постов
+        text_post = data2[i]["text"]
+        list_post_text.append(text_post)
+
+
+    return list_post_text
+
 
 def send_post_Htag(text_hashtag, dict_info): # функция проходится по словарю и ищет публикации с нужными хэштэгами
-    for i in range(0, 10):
+    for i in range(0, len(dict_info)):
         if text_hashtag[0] == "#" and text_hashtag in dict_info[i][1]:
             stroka_for_send = dict_info[i][1]
             break
@@ -107,5 +157,22 @@ def send_post_Htag(text_hashtag, dict_info): # функция проходитс
     return stroka_for_send
 
 
+def find_teg(list, teg_list):
+    index = 0
+    for item in list:
+        if "#" in item:
+            for i in range(item.index('#'), len(item)):
+                if item[i] == ' ' or i == (len(item) - 1):
+                    teg_list.append(item[item.index('#'):i+1])
+                    index = i
+                    break
+        if item.count('#') > 1:
+            find_teg(item[index:len(item)], teg_list)
+    return teg_list
 
-bot.polling(none_stop=True)
+
+
+
+# bot.polling(none_stop=True)
+t2 = Thread(target= bot.polling(none_stop=True))
+t2.start()
