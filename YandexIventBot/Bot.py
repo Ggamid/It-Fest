@@ -2,6 +2,7 @@ import telebot
 import requests
 import vk_api
 from telebot import types
+from requests import get
 
 token = "5248705269:AAF0vUzDRuf3nYV-M6Ur9OFnlQNyx_izGKY"
 tokenVK = "fd98b0c9fd98b0c9fd98b0c984fde4b800ffd98fd98b0c99fd5c972905042d874946aa7"
@@ -34,11 +35,12 @@ def start_message(message):
 
 
 
-@bot.message_handler(content_types=['text', "sticker"])
+@bot.message_handler(content_types=['text'])
 def lalala(message):
     text_hashtag = message.text #получени текста сообщения
     dict_info = GetInfo(domain) #словарь с публикациями
-    bot.send_message(message.chat.id, send_post_Htag(text_hashtag, dict_info))
+
+    bot.send_message(message.chat.id, send_post_Htag(text_hashtag, dict_info) + "\n" + "https://vk.com/nauchim.online")
 
 
 # Bot_end
@@ -70,11 +72,11 @@ def GetInfo(domain):
 
 def send_post_Htag(text_hashtag, dict_info): # функция проходится по словарю и ищет публикации с нужными хэштэгами
     for i in range(0, 10):
-        if text_hashtag in dict_info[i][1]:
-            stroka_for_send = dict_info[i][1] + "\n" + dict_info[i][2]
+        if text_hashtag[0] == "#" and text_hashtag in dict_info[i][1]:
+            stroka_for_send = dict_info[i][1]
             break
-    else:
-        stroka_for_send = "такого тэга нет"
+        else:
+            stroka_for_send = "такого тэга нет"
     return stroka_for_send
 
 
