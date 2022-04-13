@@ -70,7 +70,7 @@ class Sqlighter:
             cursor.close()# после обработки метода отключаем способность редактирования
             connect.close() # отключаемся от БД
 
-    def change_sendind(id, status): # отключени отправки сообщений
+    def change_sendind(id, status): # изменение статуса отправки сообщений
         try:
             connect = sqlite3.connect("db_id_tag.db")  # подключаемся к БД
             cursor = connect.cursor() # подключаем способность редактирования
