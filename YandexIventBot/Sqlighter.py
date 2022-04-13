@@ -159,6 +159,22 @@ class Sqlighter:
             cursor.close()
             connect.close()
 
+    def get_id_list(): #получаем из базы данных сисок с id пользователей которым будем отправлять уведомления
+        try:
+            connect = sqlite3.connect("db_id_tag.db")
+            cursor = connect.cursor()
+            a = cursor.execute("SELECT id FROM user WHERE status = 1").fetchall()
+            newlst = []
+            for i in a:
+                for x in i:
+                    newlst.append(x)
+            return newlst
+        except sqlite3.Error as e:
+            print("Error", e)
+        finally:
+            cursor.close()
+            connect.close()
+
 
 
 
