@@ -96,11 +96,11 @@ class Sqlighter:
             connect = sqlite3.connect("db_id_tag.db")  # подключаемся к БД
             cursor = connect.cursor()   # подключаем способность редактирования
 
-            a = cursor.execute("SELECT tag FROM user WHERE id = ?", [id])  #Проверка есть ли в базе данное ID
+            a = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0]  #Проверка есть ли в базе данное ID
             b = cursor.execute("SELECT id FROM user WHERE id = ?", [id])
-            if a.fetchone() is None or b is None:
+            if a is None or a == "" or "#" not in a or b is None:
                 return "ID НЕТ В БАЗЕ ИЛИ В TAG НИЧЕГО НЕТ"
-            else:
+            elif tag in cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0].split(","):
                 print("good")
                 old_tag = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0].split(",")  #вытаскиваем строку с тэгами и превращаем ее в список с тэгами
                 old_tag.remove(tag)  #удаляем ненужный тэг
@@ -117,18 +117,47 @@ class Sqlighter:
             cursor.close()# после обработки метода отключаем способность редактирования
             connect.close() # отключаемся от БД
 
+
+
     def check_out_status(id): # проверка на то, нужно ли отправлять пользователю уведомления или нет
+        try:
+            connect = sqlite3.connect("db_id_tag.db")  # подключаемся к БД
+            cursor = connect.cursor()  # подключаем способность редактирования
 
-        connect = sqlite3.connect("db_id_tag.db")  # подключаемся к БД
-        cursor = connect.cursor()  # подключаем способность редактирования
+            tag = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0]
+            status = cursor.execute("SELECT status FROM user WHERE id = ?", [id]).fetchone()[0]
 
-        tag = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0]
-        status = cursor.execute("SELECT status FROM user WHERE id = ?", [id]).fetchone()[0]
-        print(tag, status)
-        if tag is None or tag == "" or status == 0: #если в тэге ничего нет или тэг это пустая строчка или статус равен 0 то пользоваетель не подходит под рассылку, иначе - подходит
-            return False
-        else:
-            return True
+            if tag is None or tag == "" or status == 0: #если в тэге ничего нет или тэг это пустая строчка или статус равен 0 то пользоваетель не подходит под рассылку, иначе - подходит
+                return False
+            else:
+                return True
+        except sqlite3.Error as e:
+            print("Error", e)
+        finally:
+            cursor.close()
+            connect.close()
+
+
+
+    def get_tag(id):
+        try:
+
+            connect = sqlite3.connect("db_id_tag.db")
+            cursor = connect.cursor()
+            cursor.execute("SELECT id FROM user WHERE id =?", [id])
+            if cursor.fetchone() is None:
+                return "ТАКОГО ID НЕТ"
+            else:
+                tag = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0]
+                if tag is None:
+                    return "Вы еще не подписаны на хэштэги"
+                else:
+                    return tag
+        except sqlite3.Error as e:
+            print("Error", e)
+        finally:
+            cursor.close()
+            connect.close()
 
 
 
