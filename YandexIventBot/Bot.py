@@ -7,7 +7,6 @@ from requests import get
 from Sqlighter import Sqlighter
 from threading import Thread
 
-
 token = "5248705269:AAF0vUzDRuf3nYV-M6Ur9OFnlQNyx_izGKY"
 tokenVK = "fd98b0c9fd98b0c9fd98b0c984fde4b800ffd98fd98b0c99fd5c972905042d874946aa7"
 version = 5.131
@@ -17,20 +16,23 @@ vk = session.get_api()
 
 bot = telebot.TeleBot(token)
 
-
+identificator = 0
 # Bot begin
 @bot.message_handler(commands=['start', 'add_tag', 'remove_tag', 'change_sending'])
 def start_message(message):
+
+    global identificator
+    identificator = message.from_user.id
+
     if message.text == "/start":
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
-        support = types.KeyboardButton("Поддержка⚙️") #добавление клавиатуры
+        support = types.KeyboardButton("Поддержка⚙️")  # добавление клавиатуры
 
         markup.add(support)
         send_mess = f"Hello {message.from_user.first_name}"
         sti = open("AnimatedSticker.tgs", "rb")
-
-        bot.send_sticker(message.chat.id, sti) # отправка стикера
+        bot.send_sticker(message.chat.id, sti)  # отправка стикера
         bot.send_message(message.chat.id,
                          f'Салам {message.from_user.first_name}!, Я бот🤖, Меня зовут YaNotifi! и моя цель уведомлять тебя о новых постах в сообществе вконтакте под названием Научим Online❕📨'.format(
                              message.from_user, bot.get_me()),
@@ -58,11 +60,13 @@ def start_message(message):
     elif message.text == "/change_sending":
 
         markup = types.InlineKeyboardMarkup(row_width=1)
-        item_change_1 = types.InlineKeyboardButton("Остановить⛔️", callback_data="Continue Sending")
-        item_change_2 = types.InlineKeyboardButton("Продолжить📫", callback_data="Stop Sending")
+        item_change_1 = types.InlineKeyboardButton("Остановить⛔️", callback_data="StopSending")
+        item_change_2 = types.InlineKeyboardButton("Продолжить📫", callback_data="ContinueSending")
         markup.add(item_change_1, item_change_2)
 
-        bot.send_message(message.chat.id, "Хотите Остановить отправку сообщений? - нажмите Остановить \n Хотите Продолжить отправку сообщений? - нажмите Продолжить", reply_markup=markup)
+        bot.send_message(message.chat.id,
+                         "Хотите Остановить отправку сообщений? - нажмите Остановить \n Хотите Продолжить отправку сообщений? - нажмите Продолжить",
+                         reply_markup=markup)
 
 
 @bot.message_handler(content_types=['text'])
@@ -71,28 +75,32 @@ def lalala(message):
         if message.text == "Поддержка⚙️":
             bot.send_message(message.chat.id, "@GGAMID")
         else:
-            bot.send_message(message.chat.id, "Используй мои команды: \n         /add_tag - добавить хэштэг \n         /change_sending - отключение\включение рассылки \n         /remove_tag - отписаться от определенного хэштэга")
+            bot.send_message(message.chat.id,
+                             "Используй мои команды: \n         /add_tag - добавить хэштэг \n         /change_sending - отключение\включение рассылки \n         /remove_tag - отписаться от определенного хэштэга")
 
-# @bot.callback_query_handler(func=lambda call: True)
-# def callback_inline(call):
-#
-#     try:
-#         id = message.from_user.id
-#
-#         if call.message:
-#             # news
-#
-#             if call.data == 'Continue Sending':
-#                 Sqlighter.change_sendind(id, 1)
-#             elif call.data == 'Stop Sending':
-#                 Sqlighter.change_sendind(id, 0)
-#     except Exception as e:
-#         print(repr(e))
-#
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_inline(call):
+    try:
+        global identificator
+        if call.message:
+            # news
+            if call.data == 'ContinueSending':
+                Sqlighter.change_sendind(identificator, 1)
+                print(identificator)
+                # show alert
+                bot.answer_callback_query(callback_query_id=call.id, show_alert=True,
+                    text=Sqlighter.change_sendind(identificator, 1))
+            elif call.data == 'StopSending':
+                Sqlighter.change_sendind(identificator, 0)
+                bot.answer_callback_query(callback_query_id=call.id, show_alert=True,
+                    text=Sqlighter.change_sendind(identificator, 0))
+    except Exception as e:
+        print(repr(e))
 
 
 def sender():
-    list_user = Sqlighter.get_id_list()
+    list_user = Sqlighter.get_id_list(identificator)
     list_post = GetInfo(domain)
 
     while True:
@@ -104,14 +112,13 @@ def sender():
         time.sleep(100000)
 
 
-
-t1 = Thread(target = sender)
+t1 = Thread(target=sender)
 t1.start()
 # Bot_end
 
 
 def pars(domain):
-    status = session.method("wall.get", {"domain": domain, "count": 50})  #запрос в vk api
+    status = session.method("wall.get", {"domain": domain, "count": 50})  # запрос в vk api
     return status
 
 
@@ -130,8 +137,8 @@ def GetInfo(domain):
                 img_post = data2[i]['attachments'][0]["photo"]["sizes"][4]["url"]
         list_post_text[i] = [text_data, text_post, img_post]
 
-
     return list_post_text
+
 
 def GetText(domain):
     data = pars(domain)  # Неструктурированные данные
@@ -143,11 +150,10 @@ def GetText(domain):
         text_post = data2[i]["text"]
         list_post_text.append(text_post)
 
-
     return list_post_text
 
 
-def send_post_Htag(text_hashtag, dict_info): # функция проходится по словарю и ищет публикации с нужными хэштэгами
+def send_post_Htag(text_hashtag, dict_info):  # функция проходится по словарю и ищет публикации с нужными хэштэгами
     for i in range(0, len(dict_info)):
         if text_hashtag[0] == "#" and text_hashtag in dict_info[i][1]:
             stroka_for_send = dict_info[i][1]
@@ -163,7 +169,7 @@ def find_teg(list, teg_list):
         if "#" in item:
             for i in range(item.index('#'), len(item)):
                 if item[i] == ' ' or i == (len(item) - 1):
-                    teg_list.append(item[item.index('#'):i+1])
+                    teg_list.append(item[item.index('#'):i + 1])
                     index = i
                     break
         if item.count('#') > 1:
@@ -171,8 +177,6 @@ def find_teg(list, teg_list):
     return teg_list
 
 
-
-
 # bot.polling(none_stop=True)
-t2 = Thread(target= bot.polling(none_stop=True))
+t2 = Thread(target=bot.polling(none_stop=True))
 t2.start()

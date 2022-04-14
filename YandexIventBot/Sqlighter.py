@@ -159,7 +159,7 @@ class Sqlighter:
             cursor.close()
             connect.close()
 
-    def get_id_list(): #получаем из базы данных сисок с id пользователей которым будем отправлять уведомления
+    def get_id_list(id): #получаем из базы данных сисок с id пользователей которым будем отправлять уведомления
         try:
             connect = sqlite3.connect("db_id_tag.db")
             cursor = connect.cursor()
