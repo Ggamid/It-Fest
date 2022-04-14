@@ -34,8 +34,9 @@ def start_message(message):
         sti = open("AnimatedSticker.tgs", "rb")
         bot.send_sticker(message.chat.id, sti)  # отправка стикера
         bot.send_message(message.chat.id,
-                         f'Салам {message.from_user.first_name}!, Я бот🤖, Меня зовут YaNotifi! и моя цель уведомлять тебя о новых постах в сообществе вконтакте под названием Научим Online❕📨'.format(
-                             message.from_user, bot.get_me()),
+                         f'Салам {message.from_user.first_name}!, Я бот🤖, Меня зовут YaNotifi! и моя цель уведомлять тебя '
+                         f'о новых постах в сообществе вконтакте под названием '
+                         f'Научим Online❕📨'.format(message.from_user, bot.get_me()),
                          parse_mode='html', reply_markup=markup)
         Sqlighter.add_id(message.from_user.id)
 
@@ -65,7 +66,8 @@ def start_message(message):
         markup.add(item_change_1, item_change_2)
 
         bot.send_message(message.chat.id,
-                         "Хотите Остановить отправку сообщений? - нажмите Остановить \n Хотите Продолжить отправку сообщений? - нажмите Продолжить",
+                         "Хотите Остановить отправку сообщений? - нажмите Остановить "
+                         "\n Хотите Продолжить отправку сообщений? - нажмите Продолжить",
                          reply_markup=markup)
 
 
@@ -76,7 +78,9 @@ def lalala(message):
             bot.send_message(message.chat.id, "@GGAMID")
         else:
             bot.send_message(message.chat.id,
-                             "Используй мои команды: \n         /add_tag - добавить хэштэг \n         /change_sending - отключение\включение рассылки \n         /remove_tag - отписаться от определенного хэштэга")
+                             "Используй мои команды: \n         /add_tag - добавить хэштэг "
+                             "\n         /change_sending - отключение\включение рассылки "
+                             "\n         /remove_tag - отписаться от определенного хэштэга")
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -106,9 +110,12 @@ def sender():
     while True:
         for i in list_user:
             list_tag = Sqlighter.get_tag(i)
+            sended_tag = []
             for tag in list_tag:
-                if send_post_Htag(tag, list_post) != "такого тэга нет":
+
+                if send_post_Htag(tag, list_post) != "такого тэга нет" and tag not in sended_tag:
                     bot.send_message(i, send_post_Htag(tag, list_post))
+                    sended_tag.append(tag)
         time.sleep(100000)
 
 
@@ -140,7 +147,7 @@ def GetInfo(domain):
     return list_post_text
 
 
-def GetText(domain):
+def GetText(domain):   # эта функция нужна чтобы сделать список только из постов, чтобы потом этот список передать в функцию find_tag И она найдет все тэги из 40 публикаций
     data = pars(domain)  # Неструктурированные данные
 
     data2 = data["items"]
