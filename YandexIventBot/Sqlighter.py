@@ -8,16 +8,31 @@ cursor = connect.cursor()
 
 table = """
 CREATE TABLE IF NOT EXISTS user(
-    id INTEGER,
+    id BIGINT,
     tag TEXT,
-    status INTEGER(1) DEFAULT 0
+    status INTEGER(1) DEFAULT 0,
+    sent_post INTEGER
 );
 """
 cursor.execute(table)
 
 class Sqlighter:
 
+    def check_user(id):
+        try:
+            connect = sqlite3.connect("db_id_tag.db")
+            cursor = connect.cursor()
 
+            cursor.execute("SELECT id FROM user WHERE id =?", [id])
+            if cursor.fetchone() is None:
+                return "ТАКОГО ID НЕТ"
+            else:
+                return True
+        except sqlite3.Error as e:
+            print("Error", e)
+        finally:
+            cursor.close()
+            connect.close()
 
     def add_id(id):
         try:
@@ -144,8 +159,8 @@ class Sqlighter:
 
             connect = sqlite3.connect("db_id_tag.db")
             cursor = connect.cursor()
-            cursor.execute("SELECT id FROM user WHERE id =?", [id])
-            if cursor.fetchone() is None:
+
+            if Sqlighter.check_user(id) != True:
                 return "ТАКОГО ID НЕТ"
             else:
                 tag = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0]
@@ -174,6 +189,21 @@ class Sqlighter:
         finally:
             cursor.close()
             connect.close()
+
+    def add_id_post_to_sent_post(id_user, id_post):
+        try:
+            connect = sqlite3.connect("db_id_tag.db")
+            cursor = connect.cursor()
+
+            if Sqlighter.check_user(id_user):
+                cursor.execute("UPDATE user SET sent_post = ? WHERE id = ?", [id_post, id_user])
+                return "done"
+        except sqlite3.Error as e:
+            print("Error", e)
+        finally:
+            cursor.close()
+            connect.close()
+
 
 
 
