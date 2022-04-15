@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS user(
     id BIGINT,
     tag TEXT,
     status INTEGER(1) DEFAULT 0,
-    sent_post INTEGER
+    sent_post TEXT
 );
 """
 cursor.execute(table)
@@ -124,7 +124,7 @@ class Sqlighter:
                 connect.commit() # подтверждаем изменения
                 return 'СПИСОК ХЭШТЭГОВ ИЗМЕНЕН'
 
-            # new_tag = ",".join(old_tag)
+
 
         except sqlite3.Error as e:
             print("Error", e)
@@ -154,7 +154,7 @@ class Sqlighter:
 
 
 
-    def get_tag(id):
+    def get_tag(id): # проверяем есть ли в поле tag у пользователя хэштэги, если есть возвращаем их
         try:
 
             connect = sqlite3.connect("db_id_tag.db")
@@ -178,7 +178,7 @@ class Sqlighter:
         try:
             connect = sqlite3.connect("db_id_tag.db")
             cursor = connect.cursor()
-            a = cursor.execute("SELECT id FROM user WHERE status = 1").fetchall()
+            a = cursor.execute("SELECT id FROM user WHERE status = 1").fetchall() # берем айди пользователей у которых статус равен 1
             newlst = []
             for i in a:
                 for x in i:
@@ -190,19 +190,49 @@ class Sqlighter:
             cursor.close()
             connect.close()
 
-    def add_id_post_to_sent_post(id_user, id_post):
+    def add_id_post_to_sent_post(id_user, id_post): # добавлем в бд к пользователю Id post идентификатор поста который отправили
         try:
+            id_post = str(id_post)
             connect = sqlite3.connect("db_id_tag.db")
             cursor = connect.cursor()
 
+            new_post_id = str(cursor.execute("SELECT sent_post FROM user WHERE id = ?", [id_user]).fetchone()[0]) #берем id тех публикаций которые уже были отправлены
+
+            if new_post_id is None:
+                new_post_id = id_post
+            else:
+                new_post_id = new_post_id + "," + id_post
+
             if Sqlighter.check_user(id_user):
-                cursor.execute("UPDATE user SET sent_post = ? WHERE id = ?", [id_post, id_user])
+                cursor.execute("UPDATE user SET sent_post = ? WHERE id = ?", [new_post_id, id_user])  # и добавляем к ним новый
+                connect.commit()
+
                 return "done"
         except sqlite3.Error as e:
             print("Error", e)
         finally:
             cursor.close()
             connect.close()
+
+    def check_post_in_sent_post(id, id_post): # проверка на то отправляли ли мы этот пост или нет
+        try:
+            connect = sqlite3.connect("db_id_tag.db")
+            cursor = connect.cursor()
+
+            stroka_with_post_id = cursor.execute("SELECT sent_post FROM user WHERE id = ?", [id]).fetchone()[0].split(",") # берем посты которые отправлены пользователю
+
+            if str(id_post) in stroka_with_post_id: # проверяем был ли пост отправлен пользователю ранее
+                return "Не отправлять"
+            else:
+                return "Можно Отправить"
+
+        except sqlite3.Error as e:
+            print("Error", e)
+        finally:
+            cursor.close()
+            connect.close()
+
+
 
 
 
