@@ -163,7 +163,7 @@ class Sqlighter:
             if Sqlighter.check_user(id) != True:
                 return "ТАКОГО ID НЕТ"
             else:
-                tag = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0]
+                tag = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0].split(",")
                 if tag is None:
                     return "Вы еще не подписаны на хэштэги"
                 else:
@@ -174,7 +174,7 @@ class Sqlighter:
             cursor.close()
             connect.close()
 
-    def get_id_list(id): #получаем из базы данных сисок с id пользователей которым будем отправлять уведомления
+    def get_id_list(): #получаем из базы данных сисок с id пользователей которым будем отправлять уведомления
         try:
             connect = sqlite3.connect("db_id_tag.db")
             cursor = connect.cursor()
@@ -198,7 +198,7 @@ class Sqlighter:
 
             new_post_id = str(cursor.execute("SELECT sent_post FROM user WHERE id = ?", [id_user]).fetchone()[0]) #берем id тех публикаций которые уже были отправлены
 
-            if new_post_id is None:
+            if new_post_id is None or new_post_id == "":
                 new_post_id = id_post
             else:
                 new_post_id = new_post_id + "," + id_post
@@ -219,12 +219,13 @@ class Sqlighter:
             connect = sqlite3.connect("db_id_tag.db")
             cursor = connect.cursor()
 
-            stroka_with_post_id = cursor.execute("SELECT sent_post FROM user WHERE id = ?", [id]).fetchone()[0].split(",") # берем посты которые отправлены пользователю
+            if Sqlighter.check_user(id):
+                stroka_with_post_id = cursor.execute("SELECT sent_post FROM user WHERE id = ?", [id]).fetchone()[0].split(",") # берем посты которые отправлены пользователю
 
-            if str(id_post) in stroka_with_post_id: # проверяем был ли пост отправлен пользователю ранее
-                return "Не отправлять"
-            else:
-                return "Можно Отправить"
+                if str(id_post) in stroka_with_post_id: # проверяем был ли пост отправлен пользователю ранее
+                    return "Не отправлять"
+                else:
+                    return "Можно Отправить"
 
         except sqlite3.Error as e:
             print("Error", e)
@@ -234,7 +235,7 @@ class Sqlighter:
 
 
 
-
+print(Sqlighter.check_post_in_sent_post(635915647, 124))
 
 
 
