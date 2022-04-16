@@ -18,6 +18,7 @@ vk = session.get_api()
 
 current_data = str(date.today())[5:]
 bot = telebot.TeleBot(token)
+list_stiker = open("AnimatedStickerList.tgs", "rb")
 
 dict_perfom = {1: ['Международный конкурс детских инженерных команд', '#TechnoCom'],
                2: ['Международный фестиваль информационных технологий «ITфест»', '#IT-fest_2022'],
@@ -61,18 +62,16 @@ def start_message(message):
 
     elif message.text == "/add_tag":
 
-        empti = []
-        empti = set(find_teg(GetText(domain), empti))
         bot.send_message(message.chat.id, f"Ваш нынешний список: \n{Sqlighter.get_tag(message.from_user.id)}")
-        bot.send_message(message.chat.id, f"Доступные хэштэги: \n{stroka}")
+        bot.send_message(message.chat.id, f"Доступные хэштэги: \n{stroka} \n Как много мероприятий, неправда ли? Думаю каждый найдет то, что ему по душе!😁")
         bot.send_message(message.chat.id, "Отправь хэштэг на который хотите подписаться в формате 📥:")
         bot.send_message(message.chat.id, "YaNotifi, Добавь хэштэг: #text")
 
 
     elif message.text == "/remove_tag":
-
+        bot.send_sticker(message.chat.id, list_stiker)
         bot.send_message(message.chat.id, f"Ваш нынешний список: \n{Sqlighter.get_tag(message.from_user.id)}")
-        bot.send_message(message.chat.id, "Отправь хэштэг от которого хотите отписаться в формате 🚮:".format())
+        bot.send_message(message.chat.id, "Отправь хэштэг от которого хотите отписаться  🚮 в формате:".format())
         bot.send_message(message.chat.id, "YaNotifi, Удали хэштэг: #text".format())
 
 
@@ -95,6 +94,14 @@ def lalala(message):
     if message.chat.type == "private":
         if message.text == "Поддержка⚙️":
             bot.send_message(message.chat.id, "@GGAMID")
+        elif "YaNotifi, Добавь хэштэг:" in message.text:
+            ls = []
+            Sqlighter.add_tag_to_id(identificator, find_teg_in_stroke(message.text, ls)[0])
+
+        elif "YaNotifi, Удали хэштэг:" in message.text:
+            ls = []
+            Sqlighter.remove_tag_from_id(identificator, find_teg_in_stroke(message.text, ls)[0])
+
         else:
             bot.send_message(message.chat.id,
                              "Используй мои команды: \n         /add_tag - добавить хэштэг "
@@ -113,7 +120,7 @@ def callback_inline(call):
              # show alert
                 if Sqlighter.change_sendind(identificator, 1) == "ИЗМЕНЕНИЯ СОХРАНЕНЫ":
                     bot.answer_callback_query(callback_query_id=call.id, show_alert=True,
-                                              text="Отправка уведомлений остановлена😌")
+                                              text="Отправка уведомлений продолжится😌")
                 else:
                     bot.answer_callback_query(callback_query_id=call.id, show_alert=True,
                                               text="Что-то пошло не так🤔, напишите в поддержку")
@@ -122,6 +129,13 @@ def callback_inline(call):
                 # show alert
                 bot.answer_callback_query(callback_query_id=call.id, show_alert=True,
                                           text=Sqlighter.change_sendind(identificator, 0))
+
+                if Sqlighter.change_sendind(identificator, 1) == "ИЗМЕНЕНИЯ СОХРАНЕНЫ":
+                    bot.answer_callback_query(callback_query_id=call.id, show_alert=True,
+                                              text="Отправка уведомлений остановлена😌")
+                else:
+                    bot.answer_callback_query(callback_query_id=call.id, show_alert=True,
+                                              text="Что-то пошло не так🤔, напишите в поддержку")
     except Exception as e:
         print(repr(e))
 
@@ -213,7 +227,7 @@ def send_post_Htag(text_hashtag, dict_info, id):  # функция проход�
 
 
 
-def find_teg(list, teg_list):
+def find_teg(text, teg_list):
     index = 0
     for item in list:
         if "#" in item:
@@ -225,6 +239,18 @@ def find_teg(list, teg_list):
         if item.count('#') > 1:
             find_teg(item[index:len(item)], teg_list)
     return teg_list
-# sender()
+
+def find_teg_in_stroke(text, teg_list):
+            index = 0
+            for i in range(text.index('#'), len(text)):
+                if text[i] == ' ' or i == (len(text) - 1):
+                    teg_list.append(text[text.index('#'):i + 1])
+                    index = i
+                    break
+            if text.count('#') > 1:# sender()
+                find_teg_in_stroke(text[index:len(text)], teg_list)
+            return teg_list
+
+
 t2 = Thread(target=bot.polling(none_stop=True))
 t2.start()
