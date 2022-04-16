@@ -117,12 +117,15 @@ def lalala(message):
         elif message.text == "Последний Пост 📢":
 
             lastov_post = GetInfo(domain)[number_of_post][1]
+            bot.send_message(message.chat.id, lastov_post)
             if number_of_post > 40:
                 number_of_post = 0
+                sti = open("AnimatedSticker.tgs", "rb")
+                bot.send_sticker(message.chat.id, sti)
                 bot.send_message(message.chat.id, "Вау 🤩, тебе так интересны публикации 🧐, так переходи в сообщество и смотри больше там. Вы просмотрели все 40, доступных боту публикаций 📃. Теперь при нажатии на кнопку вы начнете получать те же публикации заново 🔄")
             number_of_post += 1
 
-            bot.send_message(message.chat.id, lastov_post)
+
         elif "YaNotifi, Добавь хэштэг:" in message.text: # тут мы обрабатываем добавление хэштэга
             ls = []
             check = Sqlighter.add_tag_to_id(message.chat.id, find_teg_in_stroke(message.text, ls)[0])
