@@ -235,7 +235,6 @@ class Sqlighter:
 
 
 
-print(Sqlighter.check_post_in_sent_post(635915647, 124))
 
 
 
