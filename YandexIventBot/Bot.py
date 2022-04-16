@@ -33,10 +33,8 @@ stroka = ""
 for i in range(1, len(dict_perfom)):
     stroka += dict_perfom[i][0] + " " + dict_perfom[i][1] + "\n"
 
-
-
-
 identificator = 0
+
 
 # Bot begin
 @bot.message_handler(commands=['start', 'add_tag', 'remove_tag', 'change_sending'])
@@ -45,20 +43,33 @@ def start_message(message):
     identificator = message.from_user.id
 
     if message.text == "/start":
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
 
         support = types.KeyboardButton("Поддержка⚙️")  # добавление клавиатуры
+        add_tag = types.KeyboardButton("/add_tag")
+        remove_tag = types.KeyboardButton("/remove_tag")
+        on_off = types.KeyboardButton("/change_sending")
 
-        markup.add(support)
-        send_mess = f"Hello {message.from_user.first_name}"
+        markup.add(support, add_tag, remove_tag, on_off)
+
+        send_mess = f"Салам {message.from_user.first_name}"
         sti = open("AnimatedSticker.tgs", "rb")
         bot.send_sticker(message.chat.id, sti)  # отправка стикера
         bot.send_message(message.chat.id,
-                         f'Салам {message.from_user.first_name}!, Я бот🤖, Меня зовут YaNotifi! и моя цель уведомлять тебя '
+                         f'{send_mess}!, Я бот🤖, Меня зовут YaNotifi! и моя цель уведомлять тебя '
                          f'о новых постах в сообществе вконтакте под названием '
                          f'Научим Online❕📨'.format(message.from_user, bot.get_me()),
                          parse_mode='html', reply_markup=markup)
+
+        bot.send_message(message.chat.id, "Пользуйся командами 🔧 в клавиатуре опишу их:  "
+                                          "\n /change_sending - с помощью нее ты можешь отключать и включать отправку уведомлений"
+                                          "\n /add_tag - с помощью этой команды можешь добавлять желаемые хэштэги и бот будет уведомлять о записях с таким хэштэгом "
+                                          "\n /remove_tag - благодаря ей удаляй больше не интересующие хэштэги")
+
         Sqlighter.add_id(message.from_user.id)
+
+
+
 
     elif message.text == "/add_tag":
 
@@ -93,7 +104,9 @@ def start_message(message):
 def lalala(message):
     if message.chat.type == "private":
         if message.text == "Поддержка⚙️":
-            bot.send_message(message.chat.id, "@GGAMID")
+            bot.send_message(message.chat.id, "Привет! Если у вас возникли какие-либо вопросы, то вот наши контакты: "
+                                              "\n Группа ВКонтакте Научим.online https://vk.com/nauchim.online "
+                                              "\n Сайт с мероприятиями https://www.научим.online")
         elif "YaNotifi, Добавь хэштэг:" in message.text:
             ls = []
             Sqlighter.add_tag_to_id(identificator, find_teg_in_stroke(message.text, ls)[0])
@@ -104,7 +117,8 @@ def lalala(message):
 
         else:
             bot.send_message(message.chat.id,
-                             "Используй мои команды: \n         /add_tag - добавить хэштэг "
+                             "Я тебя не понимаю 🤖.Используй мои команды!:"
+                             " \n         /add_tag - добавить хэштэг "
                              "\n         /change_sending - отключение\включение рассылки "
                              "\n         /remove_tag - отписаться от определенного хэштэга")
 
@@ -117,7 +131,7 @@ def callback_inline(call):
             # news
             if call.data == 'ContinueSending':
                 Sqlighter.change_sendind(identificator, 1)
-             # show alert
+                # show alert
                 if Sqlighter.change_sendind(identificator, 1) == "ИЗМЕНЕНИЯ СОХРАНЕНЫ":
                     bot.answer_callback_query(callback_query_id=call.id, show_alert=True,
                                               text="Отправка уведомлений продолжится😌")
@@ -127,15 +141,14 @@ def callback_inline(call):
             elif call.data == 'StopSending':
                 Sqlighter.change_sendind(identificator, 0)
                 # show alert
-                bot.answer_callback_query(callback_query_id=call.id, show_alert=True,
-                                          text=Sqlighter.change_sendind(identificator, 0))
-
-                if Sqlighter.change_sendind(identificator, 1) == "ИЗМЕНЕНИЯ СОХРАНЕНЫ":
+                if Sqlighter.change_sendind(identificator, 0) == "ИЗМЕНЕНИЯ СОХРАНЕНЫ":
                     bot.answer_callback_query(callback_query_id=call.id, show_alert=True,
                                               text="Отправка уведомлений остановлена😌")
+
                 else:
                     bot.answer_callback_query(callback_query_id=call.id, show_alert=True,
                                               text="Что-то пошло не так🤔, напишите в поддержку")
+
     except Exception as e:
         print(repr(e))
 
@@ -158,7 +171,6 @@ def sender():
         sender()
         print("Error", e)
 
-# list_post_text[i] = [date_post, text_post, img_post, check_data, id_post]
 #
 t1 = Thread(target=sender)
 t1.start()
@@ -201,7 +213,8 @@ def GetInfo(domain):
     return list_post_text
 
 
-def GetText(domain):  # эта функция нужна чтобы сделать список только из постов, чтобы потом этот список передать в функцию find_tag И она найдет все тэги из 40 публикаций
+def GetText(
+        domain):  # эта функция нужна чтобы сделать список только из постов, чтобы потом этот список передать в функцию find_tag И она найдет все тэги из 40 публикаций
     data = pars(domain)  # Неструктурированные данные
 
     data2 = data["items"]
@@ -217,14 +230,14 @@ def GetText(domain):  # эта функция нужна чтобы сделат
 def send_post_Htag(text_hashtag, dict_info, id):  # функция проходится по словарю и ищет публикации с нужными хэштэгами
     for i in range(0, len(dict_info)):
         print(dict_info([i][1]))
-        if text_hashtag in dict_info[i][1] and dict_info[i][3] and (Sqlighter.check_post_in_sent_post(id, dict_info[i][4]) == "Можно Отправить"):
+        if text_hashtag in dict_info[i][1] and dict_info[i][3] and (
+                Sqlighter.check_post_in_sent_post(id, dict_info[i][4]) == "Можно Отправить"):
 
             list_for_send = [dict_info[i][1], dict_info[i][4]]
 
         else:
             list_for_send = ["такого тэга нет", ""]
     return list_for_send
-
 
 
 def find_teg(text, teg_list):
@@ -240,16 +253,17 @@ def find_teg(text, teg_list):
             find_teg(item[index:len(item)], teg_list)
     return teg_list
 
+
 def find_teg_in_stroke(text, teg_list):
-            index = 0
-            for i in range(text.index('#'), len(text)):
-                if text[i] == ' ' or i == (len(text) - 1):
-                    teg_list.append(text[text.index('#'):i + 1])
-                    index = i
-                    break
-            if text.count('#') > 1:# sender()
-                find_teg_in_stroke(text[index:len(text)], teg_list)
-            return teg_list
+    index = 0
+    for i in range(text.index('#'), len(text)):
+        if text[i] == ' ' or i == (len(text) - 1):
+            teg_list.append(text[text.index('#'):i + 1])
+            index = i
+            break
+    if text.count('#') > 1:  # sender()
+        find_teg_in_stroke(text[index:len(text)], teg_list)
+    return teg_list
 
 
 t2 = Thread(target=bot.polling(none_stop=True))
