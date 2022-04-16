@@ -18,7 +18,7 @@ cursor.execute(table)
 
 class Sqlighter:
 
-    def check_user(id):
+    def check_user(id): # проверяет есть ли пользователь в БД
         try:
             connect = sqlite3.connect("db_id_tag.db")
             cursor = connect.cursor()
@@ -34,7 +34,7 @@ class Sqlighter:
             cursor.close()
             connect.close()
 
-    def add_id(id):
+    def add_id(id): # дабавляет пользователя в БД
         try:
 
             connect = sqlite3.connect('db_id_tag.db')  # подключаемся к БД
@@ -57,7 +57,7 @@ class Sqlighter:
             connect.close() # отключаемся от БД
 
 
-    def add_tag_to_id(id, tag):
+    def add_tag_to_id(id, tag): # добавляет тэг к пользователю
         try:
 
             connect = sqlite3.connect('db_id_tag.db')  # подключаемся к БД
@@ -105,7 +105,7 @@ class Sqlighter:
             connect.close() # отключаемся от БД
 
 
-    def remove_tag_from_id(id, tag):
+    def remove_tag_from_id(id, tag): # удаляет у определенного пользователя
         try:
 
             connect = sqlite3.connect("db_id_tag.db")  # подключаемся к БД
@@ -178,7 +178,7 @@ class Sqlighter:
         try:
             connect = sqlite3.connect("db_id_tag.db")
             cursor = connect.cursor()
-            a = cursor.execute("SELECT id FROM user WHERE status = 1").fetchall() # берем айди пользователей у которых статус равен 1
+            a = cursor.execute("SELECT id FROM user WHERE status = 1").fetchall() # берем айди пользователей у которых статус равен 1 то есть который готов получать увдеомления
             newlst = []
             for i in a:
                 for x in i:
