@@ -163,7 +163,7 @@ class Sqlighter:
             if Sqlighter.check_user(id) != True:
                 return "ТАКОГО ID НЕТ"
             else:
-                tag = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0].split(",")
+                tag = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0]
                 if tag is None:
                     return "Вы еще не подписаны на хэштэги"
                 else:
@@ -220,12 +220,15 @@ class Sqlighter:
             cursor = connect.cursor()
 
             if Sqlighter.check_user(id):
-                stroka_with_post_id = cursor.execute("SELECT sent_post FROM user WHERE id = ?", [id]).fetchone()[0].split(",") # берем посты которые отправлены пользователю
-
-                if str(id_post) in stroka_with_post_id: # проверяем был ли пост отправлен пользователю ранее
+                stroka_with_post_id = cursor.execute("SELECT sent_post FROM user WHERE id = ?", [id]).fetchone()[0] # берем посты которые отправлены пользователю
+                if stroka_with_post_id is None:
                     return "Не отправлять"
                 else:
-                    return "Можно Отправить"
+                    stroka_with_post_id.split(",")
+                    if str(id_post) in stroka_with_post_id: # проверяем был ли пост отправлен пользователю ранее
+                        return "Не отправлять"
+                    else:
+                        return "Можно Отправить"
 
         except sqlite3.Error as e:
             print("Error", e)
