@@ -111,18 +111,21 @@ class Sqlighter:
             connect = sqlite3.connect("db_id_tag.db")  # подключаемся к БД
             cursor = connect.cursor()   # подключаем способность редактирования
 
-            a = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0]  #Проверка есть ли в базе данное ID
-            b = cursor.execute("SELECT id FROM user WHERE id = ?", [id])
-            if a is None or a == "" or "#" not in a or b is None:
-                return "ID НЕТ В БАЗЕ ИЛИ В TAG НИЧЕГО НЕТ"
-            elif tag in cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0].split(","):
-                print("good")
-                old_tag = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0].split(",")  #вытаскиваем строку с тэгами и превращаем ее в список с тэгами
-                old_tag.remove(tag)  #удаляем ненужный тэг
-                new_tag = ",".join(old_tag)  #cоздаем новую строку которую будем добавлять в бд
-                cursor.execute("UPDATE user SET tag = ? WHERE id = ?", [new_tag, id])  #дабавляем отредактированные тэги
-                connect.commit() # подтверждаем изменения
-                return 'СПИСОК ХЭШТЭГОВ ИЗМЕНЕН'
+            if Sqlighter.check_user(id):
+                prom = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0]
+                if prom is not None and prom != "":
+                    old_tag = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0].split(",")  #вытаскиваем строку с тэгами и превращаем ее в список с тэгами
+                    if tag in old_tag:
+                        old_tag.remove(tag)  #удаляем ненужный тэг
+                        new_tag = ",".join(old_tag)  #cоздаем новую строку которую будем добавлять в бд
+                        cursor.execute("UPDATE user SET tag = ? WHERE id = ?", [new_tag, id])  #дабавляем отредактированные тэги
+                        connect.commit() # подтверждаем изменения
+                        return 'СПИСОК ХЭШТЭГОВ ИЗМЕНЕН'
+                    else:
+                        return "Такого тэга нет в списке"
+                return "У пользователя нет тэгов"
+            return "Такого пользователя нет"
+
 
 
 
@@ -164,7 +167,7 @@ class Sqlighter:
                 return "ТАКОГО ID НЕТ"
             else:
                 tag = cursor.execute("SELECT tag FROM user WHERE id = ?", [id]).fetchone()[0]
-                if tag is None:
+                if tag is None or tag == "":
                     return "Вы еще не подписаны на хэштэги"
                 else:
                     return tag
@@ -235,7 +238,6 @@ class Sqlighter:
         finally:
             cursor.close()
             connect.close()
-
 
 
 

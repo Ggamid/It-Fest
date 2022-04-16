@@ -39,11 +39,9 @@ identificator = 0
 # Bot begin
 @bot.message_handler(commands=['start', 'add_tag', 'remove_tag', 'change_sending']) # обработчик команд
 def start_message(message):
-
-
+    global identificator
     if message.text == "/start":
 
-        global identificator
         identificator = message.from_user.id  # записываем id пользователя чтобы дальше использовать его в коде
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
 
@@ -91,6 +89,9 @@ def start_message(message):
 
     elif message.text == "/change_sending": # обработка команды которая включает и выключает уведомления
 
+
+        identificator = message.from_user.id
+
         markup = types.InlineKeyboardMarkup(row_width=1)
         item_change_1 = types.InlineKeyboardButton("Остановить⛔️", callback_data="StopSending")
         item_change_2 = types.InlineKeyboardButton("Продолжить📫", callback_data="ContinueSending")
@@ -111,12 +112,20 @@ def lalala(message):
                                               "\n Сайт с мероприятиями https://www.научим.online")
         elif "YaNotifi, Добавь хэштэг:" in message.text: # тут мы обрабатываем добавление хэштэга
             ls = []
-            Sqlighter.add_tag_to_id(identificator, find_teg_in_stroke(message.text, ls)[0])
+            check = Sqlighter.add_tag_to_id(message.chat.id, find_teg_in_stroke(message.text, ls)[0])
+            if check == "TAG ДОБАВЛЕН":
+                bot.send_message(message.chat.id, "Тэг Добавлен ✅")
+            else:
+                bot.send_message(message.chat.id, f"{check}, Обратитесь в поддержку или попытайтесь еще раз")
 
         elif "YaNotifi, Удали хэштэг:" in message.text: # тут мы обрабатываем удаление хэштэга
             ls = []
-            Sqlighter.remove_tag_from_id(identificator, find_teg_in_stroke(message.text, ls)[0])
 
+            check = Sqlighter.remove_tag_from_id(message.chat.id, find_teg_in_stroke(message.text, ls)[0])
+            if check == 'СПИСОК ХЭШТЭГОВ ИЗМЕНЕН':
+                bot.send_message(message.chat.id, "Тэг Удален ✅")
+            else:
+                bot.send_message(message.chat.id, f"{check}, Обратитесь в поддержку или попытайтесь еще раз")
         else:
             bot.send_message(message.chat.id,
                              "Я тебя не понимаю 🤖.Используй мои команды!:"
