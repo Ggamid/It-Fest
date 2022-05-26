@@ -11,8 +11,6 @@ from datetime import date  # Дата
 import datetime
 from token import tokenBot, tokenVK
 
-token = "5248705269:AAF0vUzDRuf3nYV-M6Ur9OFnlQNyx_izGKY"  # токен бота
-  # токен вк просьба нигде не использовать!!!
 version = 5.131
 domain = "nauchim.online"
 session = vk_api.VkApi(token=tokenVK)
